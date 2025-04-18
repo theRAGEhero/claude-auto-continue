@@ -55,21 +55,8 @@ This script only interacts with elements on the Claude.ai page.
 
 ---
 
-## 🛠️ Development
-
-Want to tweak the selectors or behavior?
-
-Check out the script file: [`claude-auto-continue.user.js`](./claude-auto-continue.user.js)
-
----
-
 ## 📄 License
 
-MIT © 2025 — [Your Name or GitHub Username]
+MIT © 2025 
 
----
-
-## ❤️ Acknowledgements
-
-Inspired by the great experience Claude offers — made even smoother ✨
 
