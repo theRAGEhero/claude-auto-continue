@@ -1,0 +1,70 @@
+// ==UserScript==
+// @name         Claude Auto Continue (Smart Click)
+// @namespace    http://tampermonkey.net/
+// @version      0.7
+// @description  Automatically sends "Continue" only when a new 'max length' message appears, with small delay and smart button click
+// @match        https://claude.ai/*
+// @grant        none
+// ==/UserScript==
+
+(function () {
+    'use strict';
+
+    let lastWarningCount = 0;
+
+    function sendContinueMessage() {
+        const inputArea = document.querySelector('[contenteditable="true"]');
+        if (inputArea) {
+            inputArea.textContent = 'Continue';
+            inputArea.dispatchEvent(new Event('input', { bubbles: true }));
+            inputArea.focus();
+
+            // Wait before clicking the send button
+            setTimeout(() => {
+                // Look for the send button by SVG path (up arrow)
+                const svgPath = 'M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z';
+                const svg = Array.from(document.querySelectorAll('svg path')).find(path => path.getAttribute('d') === svgPath);
+
+                if (svg) {
+                    const button = svg.closest('button, div');
+                    if (button) {
+                        button.click();
+                        console.log('Clicked send button successfully.');
+                    } else {
+                        console.log('Clickable parent of SVG not found.');
+                    }
+                } else {
+                    console.log('Send icon not found.');
+                }
+            }, 2000); // Delay before clicking
+        }
+    }
+
+    function countMaxLengthMessages() {
+        return Array.from(document.querySelectorAll('div'))
+            .filter(el => el.textContent?.includes('Claude hit the max length for a message')).length;
+    }
+
+    function watchForNewWarnings() {
+        const observer = new MutationObserver(() => {
+            const currentCount = countMaxLengthMessages();
+            if (currentCount > lastWarningCount) {
+                console.log(`New 'max length' message detected. Count: ${currentCount}`);
+                lastWarningCount = currentCount;
+
+                // Add a 2-second delay before sending "Continue"
+                setTimeout(sendContinueMessage, 2000);
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        // Initial count to avoid false trigger on first load
+        lastWarningCount = countMaxLengthMessages();
+    }
+
+    setTimeout(watchForNewWarnings, 2000);
+})();
